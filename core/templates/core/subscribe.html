@@ -33,6 +33,38 @@
         font-weight: bold;
         transform: rotate(45deg);
     }
+
+    /* Стили для Stripe Elements */
+    .StripeElement {
+        box-sizing: border-box;
+        height: 40px;
+        padding: 10px 12px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        background-color: white;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+    .StripeElement--focus {
+        border-color: #80bdff;
+        outline: 0;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+
+    .StripeElement--invalid {
+        border-color: #dc3545;
+    }
+
+    .StripeElement--webkit-autofill {
+        background-color: #fefde5 !important;
+    }
+
+    #card-errors {
+        color: #dc3545;
+        font-size: 14px;
+        margin-top: 8px;
+        min-height: 20px;
+    }
 </style>
 {% endblock %}
 
@@ -58,7 +90,7 @@
                             <span class="text-muted">/ единоразово</span>
                         </div>
                     </div>
-                    
+
                     <div class="card-body p-4">
                         <!-- Преимущества -->
                         <ul class="list-unstyled mb-4">
@@ -84,6 +116,19 @@
                             </li>
                         </ul>
 
+                        <!-- Поля для ввода карты -->
+                        {% if not user.has_active_subscription %}
+                        <div class="mb-4">
+                            <label for="card-element" class="form-label fw-bold">
+                                💳 Данные банковской карты
+                            </label>
+                            <div id="card-element" class="form-control p-0">
+                                <!-- Stripe Elements вставит сюда поля для карты -->
+                            </div>
+                            <div id="card-errors" role="alert"></div>
+                        </div>
+                        {% endif %}
+
                         <!-- Кнопка оплаты -->
                         <div class="d-grid">
                             {% if user.has_active_subscription %}
@@ -95,7 +140,7 @@
                                     Ваша подписка действительна бессрочно
                                 </small>
                             {% else %}
-                                <button id="pay-button" class="btn btn-warning btn-lg py-3 fw-bold">
+                                <button id="pay-button" class="btn btn-warning btn-lg py-3 fw-bold" disabled>
                                     <span class="me-2">💳</span>
                                     Оформить подписку за 50₽
                                 </button>
@@ -118,7 +163,7 @@
                     Все платежи защищены через Stripe. Мы не храним данные вашей карты.
                 </p>
             </div>
-            
+
             <div class="col-md-4 text-center mb-4">
                 <div class="h1 text-success mb-3">⚡</div>
                 <h5>Мгновенный доступ</h5>
@@ -126,7 +171,7 @@
                     После оплаты доступ открывается сразу. Без ожидания и проверок.
                 </p>
             </div>
-            
+
             <div class="col-md-4 text-center mb-4">
                 <div class="h1 text-info mb-3">🔄</div>
                 <h5>Возврат средств</h5>
@@ -144,15 +189,64 @@
 <script src="https://js.stripe.com/v3/"></script>
 
 <script>
-const stripe = Stripe('{{ STRIPE_PUBLIC_KEY }}'); // Нужно передать ключ из контекста
+// Инициализация Stripe
+const stripe = Stripe('{{ STRIPE_PUBLIC_KEY }}');
 const payButton = document.getElementById('pay-button');
 
+// Создаем элементы для ввода карты
+const elements = stripe.elements();
+const cardElement = elements.create('card', {
+    style: {
+        base: {
+            fontSize: '16px',
+            color: '#424770',
+            fontFamily: '"Inter", sans-serif',
+            '::placeholder': {
+                color: '#aab7c4',
+            },
+        },
+    },
+    hidePostalCode: true
+});
+
+// Монтируем элементы карты в контейнер
+cardElement.mount('#card-element');
+
+// Обработчик ошибок карты
+cardElement.on('change', ({error}) => {
+    const displayError = document.getElementById('card-errors');
+    if (error) {
+        displayError.textContent = error.message;
+        payButton.disabled = true;
+        payButton.classList.remove('btn-warning');
+        payButton.classList.add('btn-secondary');
+    } else {
+        displayError.textContent = '';
+        payButton.disabled = false;
+        payButton.classList.remove('btn-secondary');
+        payButton.classList.add('btn-warning');
+    }
+});
+
+// Включаем кнопку после загрузки Stripe
+setTimeout(() => {
+    if (payButton) {
+        payButton.disabled = false;
+        console.log("✅ Stripe loaded, button enabled");
+    }
+}, 1000);
+
+// Обработчик клика по кнопке оплаты
 payButton?.addEventListener('click', async () => {
+    if (payButton.disabled) return;
+
     payButton.disabled = true;
     payButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Обработка...';
 
     try {
-        // Создаем Payment Intent через ваш API
+        console.log("🔄 Creating payment intent...");
+
+        // Создаем Payment Intent
         const response = await fetch('/api/create-payment-intent/', {
             method: 'POST',
             headers: {
@@ -163,23 +257,36 @@ payButton?.addEventListener('click', async () => {
         });
 
         const data = await response.json();
+        console.log("📦 Payment intent response:", data);
 
         if (data.error) {
             throw new Error(data.error);
         }
 
-        // Подтверждаем платеж с Stripe
-        const { error } = await stripe.confirmCardPayment(data.clientSecret);
+        if (!data.clientSecret) {
+            throw new Error('Не получен clientSecret от сервера');
+        }
+
+        // Подтверждаем платеж с данными карты
+        console.log("🔄 Confirming card payment...");
+        const { error, paymentIntent } = await stripe.confirmCardPayment(data.clientSecret, {
+            payment_method: {
+                card: cardElement,
+            }
+        });
 
         if (error) {
+            console.error("❌ Stripe error:", error);
             throw new Error(error.message);
         }
 
         // Успешная оплата
+        console.log("✅ Payment successful:", paymentIntent);
         alert('✅ Оплата прошла успешно! Подписка активирована.');
-        window.location.reload();
+        window.location.href = '/'; // Перенаправляем на главную
 
     } catch (error) {
+        console.error("❌ Payment error:", error);
         alert('❌ Ошибка оплаты: ' + error.message);
         payButton.disabled = false;
         payButton.innerHTML = '<span class="me-2">💳</span>Оформить подписку за 50₽';

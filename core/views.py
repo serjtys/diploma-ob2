@@ -6,35 +6,39 @@ from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from .models import Payment
+from .models import Post, Subscription
 from django.shortcuts import render
 from django.views.generic import ListView
+from django.http import HttpResponse
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+
 
 class CreatePaymentIntentAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = []  # Временно без аутентификации для теста
 
     def post(self, request):
+        import stripe
         stripe.api_key = settings.STRIPE_SECRET_KEY
 
         try:
+            print("🔄 [SERVER] Creating Stripe Payment Intent...")
+
+            # Упрощенный Payment Intent
             intent = stripe.PaymentIntent.create(
-                amount=5000,  # 50 рублей в копейках
+                amount=5000,
                 currency='rub',
-                metadata={'user_id': request.user.id}
             )
 
-            # TODO: Создать запись о платеже
-            # Payment.objects.create(
-            #     user=request.user,
-            #     stripe_payment_intent_id=intent.id,
-            #     amount=50.00,
-            #     status='pending'
-            # )
+            print(f"✅ [SERVER] Payment Intent created: {intent.id}")
+            print(f"🔑 [SERVER] Client Secret: {intent.client_secret}")
 
             return Response({
-                'clientSecret': intent['client_secret']
+                'clientSecret': intent.client_secret
             })
+
         except Exception as e:
+            print(f"❌ [SERVER] Stripe error: {str(e)}")
             return Response({'error': str(e)}, status=400)
 
 class PostListAPIView(generics.ListAPIView):
@@ -78,5 +82,51 @@ class PostListView(ListView):
 class SubscribeView(APIView):
     def get(self, request):
         return render(request, 'core/subscribe.html', {
-            'STRIPE_PUBLIC_KEY': settings.STRIPE_PUBLIC_KEY
+            'STRIPE_PUBLIC_KEY': settings.STRIPE_PUBLISHABLE_KEY
         })
+
+@method_decorator(csrf_exempt, name='dispatch')
+class StripeWebhookView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request):
+        print("🎯 WEBHOOK RECEIVED!")
+        payload = request.body
+        sig_header = request.META['HTTP_STRIPE_SIGNATURE']
+
+        try:
+            event = stripe.Webhook.construct_event(
+                payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
+            )
+        except ValueError as e:
+            return HttpResponse(status=400)
+        except stripe.error.SignatureVerificationError as e:
+            return HttpResponse(status=400)
+
+        # Обрабатываем успешный платеж
+        if event['type'] == 'payment_intent.succeeded':
+            payment_intent = event['data']['object']
+            self.handle_payment_succeeded(payment_intent)
+
+        return HttpResponse(status=200)
+
+    def handle_payment_succeeded(self, payment_intent):
+        user_id = payment_intent['metadata'].get('user_id')
+        if user_id:
+            try:
+                subscription, created = Subscription.objects.get_or_create(
+                    user_id=user_id,
+                    defaults={
+                        'is_active': True,
+                        'stripe_payment_intent_id': payment_intent['id']
+                    }
+                )
+                if not created:
+                    subscription.is_active = True
+                    subscription.stripe_payment_intent_id = payment_intent['id']
+                    subscription.save()
+
+                print(f"✅ Subscription activated for user {user_id}")
+            except Exception as e:
+                print(f"❌ Error activating subscription: {e}")
