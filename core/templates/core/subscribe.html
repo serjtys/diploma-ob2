@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Оформление подписки - ContentPlatform{% endblock %}
+
+{% block extra_css %}
+<style>
+    .pricing-card {
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+    
+    .pricing-card:hover {
+        transform: translateY(-5px);
+        border-color: #0d6efd;
+    }
+    
+    .pricing-card.featured {
+        border-color: #ffc107;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .pricing-card.featured::before {
+        content: "ПОПУЛЯРНЫЙ";
+        position: absolute;
+        top: 15px;
+        right: -30px;
+        background: #ffc107;
+        color: #000;
+        padding: 5px 30px;
+        font-size: 12px;
+        font-weight: bold;
+        transform: rotate(45deg);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <!-- Заголовок -->
+        <div class="text-center mb-5">
+            <h1 class="display-5 fw-bold text-primary mb-3">💎 Премиум Подписка</h1>
+            <p class="lead text-muted">
+                Получите полный доступ ко всем возможностям платформы
+            </p>
+        </div>
+
+        <!-- Карточка подписки -->
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="card pricing-card featured shadow-lg border-warning">
+                    <div class="card-header bg-warning text-dark text-center py-4">
+                        <h3 class="fw-bold mb-0">ПРЕМИУМ</h3>
+                        <div class="mt-3">
+                            <span class="h1 fw-bold">50₽</span>
+                            <span class="text-muted">/ единоразово</span>
+                        </div>
+                    </div>
+                    
+                    <div class="card-body p-4">
+                        <!-- Преимущества -->
+                        <ul class="list-unstyled mb-4">
+                            <li class="mb-3">
+                                <span class="text-success me-2">✅</span>
+                                <strong>Полный доступ</strong> ко всем платным записям
+                            </li>
+                            <li class="mb-3">
+                                <span class="text-success me-2">✅</span>
+                                <strong>Приоритетная поддержка</strong> 24/7
+                            </li>
+                            <li class="mb-3">
+                                <span class="text-success me-2">✅</span>
+                                <strong>Новый контент</strong> доступен первым
+                            </li>
+                            <li class="mb-3">
+                                <span class="text-success me-2">✅</span>
+                                <strong>Без рекламы</strong> и ограничений
+                            </li>
+                            <li class="mb-3">
+                                <span class="text-success me-2">✅</span>
+                                <strong>Пожизненный доступ</strong> к купленному контенту
+                            </li>
+                        </ul>
+
+                        <!-- Кнопка оплаты -->
+                        <div class="d-grid">
+                            {% if user.has_active_subscription %}
+                                <button class="btn btn-success btn-lg py-3" disabled>
+                                    <span class="me-2">✅</span>
+                                    Подписка активна
+                                </button>
+                                <small class="text-center text-muted mt-2">
+                                    Ваша подписка действительна бессрочно
+                                </small>
+                            {% else %}
+                                <button id="pay-button" class="btn btn-warning btn-lg py-3 fw-bold">
+                                    <span class="me-2">💳</span>
+                                    Оформить подписку за 50₽
+                                </button>
+                                <small class="text-center text-muted mt-2">
+                                    🔒 Безопасная оплата через Stripe
+                                </small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Дополнительная информация -->
+        <div class="row mt-5">
+            <div class="col-md-4 text-center mb-4">
+                <div class="h1 text-primary mb-3">🔒</div>
+                <h5>Безопасная оплата</h5>
+                <p class="text-muted small">
+                    Все платежи защищены через Stripe. Мы не храним данные вашей карты.
+                </p>
+            </div>
+            
+            <div class="col-md-4 text-center mb-4">
+                <div class="h1 text-success mb-3">⚡</div>
+                <h5>Мгновенный доступ</h5>
+                <p class="text-muted small">
+                    После оплаты доступ открывается сразу. Без ожидания и проверок.
+                </p>
+            </div>
+            
+            <div class="col-md-4 text-center mb-4">
+                <div class="h1 text-info mb-3">🔄</div>
+                <h5>Возврат средств</h5>
+                <p class="text-muted small">
+                    Гарантия возврата в течение 14 дней если не устроит качество.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Stripe.js -->
+<script src="https://js.stripe.com/v3/"></script>
+
+<script>
+const stripe = Stripe('{{ STRIPE_PUBLIC_KEY }}'); // Нужно передать ключ из контекста
+const payButton = document.getElementById('pay-button');
+
+payButton?.addEventListener('click', async () => {
+    payButton.disabled = true;
+    payButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Обработка...';
+
+    try {
+        // Создаем Payment Intent через ваш API
+        const response = await fetch('/api/create-payment-intent/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            credentials: 'same-origin'
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+            throw new Error(data.error);
+        }
+
+        // Подтверждаем платеж с Stripe
+        const { error } = await stripe.confirmCardPayment(data.clientSecret);
+
+        if (error) {
+            throw new Error(error.message);
+        }
+
+        // Успешная оплата
+        alert('✅ Оплата прошла успешно! Подписка активирована.');
+        window.location.reload();
+
+    } catch (error) {
+        alert('❌ Ошибка оплаты: ' + error.message);
+        payButton.disabled = false;
+        payButton.innerHTML = '<span class="me-2">💳</span>Оформить подписку за 50₽';
+    }
+});
+</script>
+{% endblock %}

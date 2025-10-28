@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Вход - ContentPlatform{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow border-0">
+            <div class="card-header bg-primary text-white text-center py-4">
+                <h4 class="mb-0">🔑 Вход в аккаунт</h4>
+            </div>
+            <div class="card-body p-4">
+                <!-- Сообщение об ошибке -->
+                {% if error %}
+                <div class="alert alert-danger">{{ error }}</div>
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <!-- Номер телефона -->
+                    <div class="mb-3">
+                        <label for="phone_number" class="form-label">Номер телефона</label>
+                        <input type="tel" class="form-control" id="phone_number" name="phone_number" 
+                               placeholder="+79991234567" required>
+                    </div>
+
+                    <!-- Пароль -->
+                    <div class="mb-4">
+                        <label for="password" class="form-label">Пароль</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
+
+                    <!-- Кнопка входа -->
+                    <div class="d-grid mb-3">
+                        <button type="submit" class="btn btn-primary btn-lg">Войти</button>
+                    </div>
+
+                    <!-- Ссылка на регистрацию -->
+                    <div class="text-center">
+                        <small class="text-muted">
+                            Нет аккаунта? 
+                            <a href="{% url 'users:register' %}" class="text-decoration-none">Зарегистрироваться</a>
+                        </small>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,154 @@
+{% load static %}
+
+<!-- Блок подписки -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-gradient-primary text-white py-3">
+        <h5 class="mb-0 d-flex align-items-center">
+            <span class="me-2">💎</span>
+            Премиум подписка
+        </h5>
+    </div>
+    <div class="card-body">
+        <p class="card-text">
+            Полный доступ ко всем платным материалам платформы
+        </p>
+
+        <div class="mb-3">
+            <div class="d-flex align-items-center mb-2">
+                <span class="text-success me-2">✅</span>
+                <small>Все платные записи</small>
+            </div>
+            <div class="d-flex align-items-center mb-2">
+                <span class="text-success me-2">✅</span>
+                <small>Приоритетная поддержка</small>
+            </div>
+            <div class="d-flex align-items-center mb-3">
+                <span class="text-success me-2">✅</span>
+                <small>Новый контент первым</small>
+            </div>
+        </div>
+
+        <div class="text-center mb-3">
+            <span class="h4 text-dark">50₽</span>
+            <small class="text-muted d-block">единоразово</small>
+        </div>
+
+        <div class="d-grid gap-2">
+            {% if user.is_authenticated %}
+                {% if user.has_active_subscription %}
+                    <button class="btn btn-success" disabled>
+                        ✅ Активная подписка
+                    </button>
+                    <small class="text-center text-muted">
+                        Действует до: {{ user.subscription_end_date }}
+                    </small>
+                {% else %}
+                    <a href="{% url 'core:subscribe' %}" class="btn btn-warning btn-lg fw-bold">
+                        💳 Купить подписку
+                    </a>
+                {% endif %}
+            {% else %}
+                <a href="{% url 'users:register' %}" class="btn btn-primary">
+                    📝 Зарегистрироваться
+                </a>
+                <small class="text-center text-muted">
+                    И получите доступ к подписке
+                </small>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Статистика пользователя -->
+{% if user.is_authenticated %}
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-info text-white py-3">
+        <h5 class="mb-0 d-flex align-items-center">
+            <span class="me-2">📊</span>
+            Ваша статистика
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row text-center">
+            <div class="col-6 mb-3">
+                <div class="border rounded p-2">
+                    <div class="h5 mb-1 text-primary">{{ posts|length }}</div>
+                    <small class="text-muted">Всего записей</small>
+                </div>
+            </div>
+            <div class="col-6 mb-3">
+                <div class="border rounded p-2">
+                    <div class="h5 mb-1 text-success">{{ free_posts_count }}</div>
+                    <small class="text-muted">Бесплатных</small>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="border rounded p-2">
+                    <div class="h5 mb-1 text-warning">{{ paid_posts_count }}</div>
+                    <small class="text-muted">Платных</small>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="border rounded p-2">
+                    <div class="h5 mb-1 {% if user.has_active_subscription %}text-success{% else %}text-secondary{% endif %}">
+                        {% if user.has_active_subscription %}✅{% else %}❌{% endif %}
+                    </div>
+                    <small class="text-muted">Подписка</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Быстрая навигация -->
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-light py-3">
+        <h6 class="mb-0 d-flex align-items-center">
+            <span class="me-2">🚀</span>
+            Быстрый доступ
+        </h6>
+    </div>
+    <div class="card-body p-2">
+        <div class="list-group list-group-flush">
+            <a href="{% url 'core:post_list' %}" class="list-group-item list-group-item-action border-0 py-2">
+                <span class="me-2">📖</span>
+                Все записи
+            </a>
+
+            {% if user.is_authenticated %}
+                <a href="{% url 'core:subscribe' %}" class="list-group-item list-group-item-action border-0 py-2">
+                    <span class="me-2">💎</span>
+                    Моя подписка
+                </a>
+                <a href="#" class="list-group-item list-group-item-action border-0 py-2">
+                    <span class="me-2">⭐</span>
+                    Избранное
+                </a>
+            {% else %}
+                <a href="{% url 'users:login' %}" class="list-group-item list-group-item-action border-0 py-2">
+                    <span class="me-2">🔑</span>
+                    Войти в аккаунт
+                </a>
+                <a href="{% url 'users:register' %}" class="list-group-item list-group-item-action border-0 py-2">
+                    <span class="me-2">📝</span>
+                    Создать аккаунт
+                </a>
+            {% endif %}
+
+            <a href="#" class="list-group-item list-group-item-action border-0 py-2">
+                <span class="me-2">❓</span>
+                Помощь
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Рекламный баннер -->
+<div class="card shadow-sm border-0 mt-4 bg-gradient-warning">
+    <div class="card-body text-center py-3">
+        <h6 class="mb-1">🎯 Хотите стать автором?</h6>
+        <p class="small mb-2">Публикуйте контент и зарабатывайте</p>
+        <a href="#" class="btn btn-dark btn-sm">Узнать больше</a>
+    </div>
+</div>

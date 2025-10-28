@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Регистрация - ContentPlatform{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow border-0">
+            <div class="card-header bg-success text-white text-center py-4">
+                <h4 class="mb-0">📝 Создать аккаунт</h4>
+            </div>
+            <div class="card-body p-4">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <!-- Отображение ошибок формы -->
+                    {% if form.errors %}
+                    <div class="alert alert-danger">
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                <div>{{ error }}</div>
+                            {% endfor %}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Номер телефона через Django форму -->
+                    <div class="mb-3">
+                        <label for="id_phone_number" class="form-label">Номер телефона</label>
+                        <input type="tel" class="form-control" id="id_phone_number" name="phone_number"
+                               placeholder="+79991234567" required
+                               value="{{ form.phone_number.value|default:'' }}">
+                        <div class="form-text">Используется для входа в систему</div>
+                    </div>
+
+                    <!-- Пароль через Django форму -->
+                    <div class="mb-3">
+                        <label for="id_password1" class="form-label">Пароль</label>
+                        <input type="password" class="form-control" id="id_password1" name="password1" required>
+                    </div>
+
+                    <!-- Подтверждение пароля через Django форму -->
+                    <div class="mb-4">
+                        <label for="id_password2" class="form-label">Подтверждение пароля</label>
+                        <input type="password" class="form-control" id="id_password2" name="password2" required>
+                    </div>
+
+                    <!-- Кнопка регистрации -->
+                    <div class="d-grid mb-3">
+                        <button type="submit" class="btn btn-success btn-lg">Создать аккаунт</button>
+                    </div>
+
+                    <!-- Ссылка на вход -->
+                    <div class="text-center">
+                        <small class="text-muted">
+                            Уже есть аккаунт? 
+                            <a href="{% url 'users:login' %}" class="text-decoration-none">Войти</a>
+                        </small>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
