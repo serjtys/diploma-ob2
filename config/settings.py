@@ -166,3 +166,26 @@ SIMPLE_JWT = {
 STRIPE_PUBLISHABLE_KEY = os.getenv('STRIPE_PUBLISHABLE_KEY')
 STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
 STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET')
+
+# TEST SETTINGS
+import sys
+
+if 'test' in sys.argv:
+    print("🧪 USING TEST DATABASE CONFIGURATION")
+
+    # Используем SQLite для тестов
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': ':memory:',
+        }
+    }
+
+    # Ускоряем хеширование паролей
+    PASSWORD_HASHERS = [
+        'django.contrib.auth.hashers.MD5PasswordHasher',
+    ]
+
+    # Отключаем реальные Stripe ключи в тестах
+    STRIPE_SECRET_KEY = 'sk_test_fake'
+    STRIPE_PUBLISHABLE_KEY = 'pk_test_fake'

@@ -1,0 +1,24 @@
+[run]
+source = .
+omit =
+    */tests/*
+    */migrations/*
+    */__pycache__/*
+    */venv/*
+    */.venv/*
+    */site-packages/*
+    */lib/python*
+    manage.py
+    config/__init__.py
+    core/__init__.py
+    users/__init__.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __str__
+    def __repr__
+    raise AssertionError
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    if settings.DEBUG

@@ -85,11 +85,11 @@
                         {% if post.is_paid %}
                             {% if not user.is_authenticated %}
                                 <div class="alert alert-warning p-2 mb-2">
-                                    <small>🔒 <a href="{% url 'login' %}" class="alert-link">Войдите</a> для просмотра</small>
+                                    <small>🔒 <a href="{% url 'users:login' %}" class="alert-link">Войдите</a> для просмотра</small>
                                 </div>
                             {% elif not user.has_active_subscription %}
                                 <div class="alert alert-info p-2 mb-2">
-                                    <small>💳 <a href="{% url 'subscribe' %}" class="alert-link">Подписка</a> требуется</small>
+                                    <small>💳 <a href="{% url 'core:subscribe' %}" class="alert-link">Подписка</a> требуется</small>
                                 </div>
                             {% else %}
                                 <div class="alert alert-success p-2 mb-2">

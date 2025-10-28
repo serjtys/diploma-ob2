@@ -8,11 +8,18 @@ class Post(models.Model):
     is_paid = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def __str__(self):
+        return self.title
+
 class Subscription(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     is_active = models.BooleanField(default=False)
     stripe_payment_intent_id = models.CharField(max_length=100, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+    def __str__(self):
+        return f"Подписка {self.user.phone_number} - {'активна' if self.is_active else 'неактивна'}"
 
 class Payment(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
@@ -20,3 +27,6 @@ class Payment(models.Model):
     amount = models.IntegerField()  # в копейках/центах
     status = models.CharField(max_length=20, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Платеж {self.user.phone_number} - {self.amount}коп"
