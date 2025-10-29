@@ -45,9 +45,9 @@ jobs:
 
     - name: Check code quality
       run: |
-        flake8 .
         black --check .
         isort --check-only .
+        flake8 .
 
     - name: Run migrations
       run: |
