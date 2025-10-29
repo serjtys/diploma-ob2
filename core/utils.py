@@ -1,7 +1,8 @@
+from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.db.models import Count
-from django.contrib.auth import get_user_model
-from .models import UserFollow, Post
+
+from .models import Post, UserFollow
 
 User = get_user_model()
 
