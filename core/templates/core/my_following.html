@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}Мои подписки - ContentPlatform{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="h2 mb-1">👥 Мои подписки</h1>
+                <p class="text-muted mb-0">Авторы, на которых вы подписаны</p>
+            </div>
+            <div class="text-end">
+                <span class="badge bg-primary fs-6">{{ following_count }} подписок</span>
+            </div>
+        </div>
+
+        {% if following_users %}
+        <div class="row">
+            {% for follow in following_users %}
+            <div class="col-md-6 col-lg-4 mb-3">
+                <div class="card shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <span style="font-size: 3rem;">👤</span>
+                        </div>
+                        <h5 class="card-title">{{ follow.following.get_display_name }}</h5>
+                        <p class="text-muted small">{{ follow.following.nickname }}</p>
+                        
+                        <div class="row text-center mb-3">
+                            <div class="col-6">
+                                <small class="text-muted">Постов</small>
+                                <div class="h6 mb-0">{{ follow.following.post_set.count }}</div>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">Подписчиков</small>
+                                <div class="h6 mb-0">{{ follow.following.followers_users.count }}</div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2 justify-content-center">
+                            <button class="btn btn-outline-danger btn-sm follow-btn" 
+                                    data-user-id="{{ follow.following.id }}"
+                                    data-following="true">
+                                ❌ Отписаться
+                            </button>
+                            <a href="{% url 'users:user_profile' follow.following.id %}" class="btn btn-outline-primary btn-sm">
+                                👀 Профиль
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <span style="font-size: 4rem;">👥</span>
+            <h4 class="text-muted mt-3">Вы пока ни на кого не подписаны</h4>
+            <p class="text-muted">Найдите интересных авторов и подпишитесь на них</p>
+            <a href="{% url 'core:user_search' %}" class="btn btn-primary">🔍 Найти авторов</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+// JavaScript для подписки/отписки
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.follow-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const userId = this.dataset.userId;
+            const isFollowing = this.dataset.following === 'true';
+            
+            fetch(`/user/${userId}/follow/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.action === 'followed') {
+                        this.innerHTML = '✅ Подписан';
+                        this.dataset.following = 'true';
+                        this.classList.remove('btn-outline-primary');
+                        this.classList.add('btn-outline-success');
+                    } else {
+                        this.innerHTML = '➕ Подписаться';
+                        this.dataset.following = 'false';
+                        this.classList.remove('btn-outline-success', 'btn-outline-danger');
+                        this.classList.add('btn-outline-primary');
+                        // Если на странице "Мои подписки" - удаляем карточку
+                        if (this.classList.contains('btn-outline-danger')) {
+                            this.closest('.col-md-6').remove();
+                        }
+                    }
+                }
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

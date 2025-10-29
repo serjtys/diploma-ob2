@@ -1,0 +1,303 @@
+<div class="comments-section mt-5">
+    <h5 class="mb-3">
+        💬 Комментарии
+        <span class="badge bg-primary">{{ post.comments.count }}</span>
+    </h5>
+
+    <!-- Форма добавления комментария -->
+    {% if user.is_authenticated %}
+    <div class="card mb-4">
+        <div class="card-body">
+            <h6>📝 Добавить комментарий</h6>
+            <form method="post" action="{% url 'core:create_comment' post.id %}">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <textarea name="content" class="form-control" rows="3"
+                              placeholder="Напишите ваш комментарий..." required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    📤 Отправить комментарий
+                </button>
+            </form>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        🔐 <a href="{% url 'users:login' %}" class="alert-link">Войдите</a> или
+        <a href="{% url 'users:register' %}" class="alert-link">зарегистрируйтесь</a> чтобы оставить комментарий
+    </div>
+    {% endif %}
+
+    <!-- Список комментариев -->
+    <div class="comments-list">
+        {% for comment in post.comments.all %}
+            {% if not comment.parent %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <strong class="text-primary">{{ comment.author.nickname }}</strong>
+                            <small class="text-muted ms-2">{{ comment.created_at|timesince }} назад</small>
+                        </div>
+                        {% if comment.author == user %}
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                                    type="button" data-bs-toggle="dropdown">
+                                ⋮
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <button class="dropdown-item edit-comment"
+                                            data-comment-id="{{ comment.id }}">
+                                        ✏️ Редактировать
+                                    </button>
+                                </li>
+                                <li>
+                                    <button class="dropdown-item delete-comment text-danger"
+                                            data-comment-id="{{ comment.id }}">
+                                        🗑️ Удалить
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <p class="mt-2 mb-2">{{ comment.content }}</p>
+
+                    <!-- Кнопка ответа -->
+                    {% if user.is_authenticated %}
+                    <button class="btn btn-sm btn-outline-primary reply-btn"
+                            data-comment-id="{{ comment.id }}">
+                        💬 Ответить
+                    </button>
+                    {% endif %}
+
+                    <!-- Форма ответа (скрыта) -->
+                    <div class="reply-form mt-2" id="reply-form-{{ comment.id }}" style="display: none;">
+                        <form method="post" action="{% url 'core:create_comment' post.id %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="parent" value="{{ comment.id }}">
+                            <div class="mb-2">
+                                <textarea name="content" class="form-control form-control-sm"
+                                          rows="2" placeholder="Ваш ответ..." required></textarea>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    📤 Отправить
+                                </button>
+                                <button type="button" class="btn btn-secondary btn-sm cancel-reply">
+                                    ❌ Отмена
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    <!-- Ответы на комментарий -->
+                    {% for reply in comment.replies.all %}
+                        <div class="card mb-2 ms-4 border-start">
+                            <div class="card-body py-2">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <strong class="text-success">{{ reply.author.nickname }}</strong>
+                                        <small class="text-muted ms-2">{{ reply.created_at|timesince }} назад</small>
+                                    </div>
+                                    {% if reply.author == user %}
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                                                type="button" data-bs-toggle="dropdown">
+                                            ⋮
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                <button class="dropdown-item edit-comment"
+                                                        data-comment-id="{{ reply.id }}">
+                                                    ✏️ Редактировать
+                                                </button>
+                                            </li>
+                                            <li>
+                                                <button class="dropdown-item delete-comment text-danger"
+                                                        data-comment-id="{{ reply.id }}">
+                                                    🗑️ Удалить
+                                                </button>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <p class="mt-1 mb-0">{{ reply.content }}</p>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        {% empty %}
+            <div class="text-center text-muted py-4">
+                📝 Пока нет комментариев. Будьте первым!
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+// JavaScript для работы с комментариями
+document.addEventListener('DOMContentLoaded', function() {
+    // Кнопки ответа
+    document.querySelectorAll('.reply-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const commentId = this.dataset.commentId;
+            const form = document.getElementById(`reply-form-${commentId}`);
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        });
+    });
+
+    // Отмена ответа
+    document.querySelectorAll('.cancel-reply').forEach(btn => {
+        btn.addEventListener('click', function() {
+            this.closest('.reply-form').style.display = 'none';
+        });
+    });
+
+    // УДАЛЕНИЕ КОММЕНТАРИЕВ
+    document.querySelectorAll('.delete-comment').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const commentId = this.dataset.commentId;
+
+            if (confirm('❌ Удалить этот комментарий?')) {
+                fetch(`/api/comments/${commentId}/delete/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'same-origin'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Находим и удаляем элемент комментария из DOM
+                        const commentElement = this.closest('.card');
+                        commentElement.style.opacity = '0';
+                        setTimeout(() => {
+                            commentElement.remove();
+                            // Обновляем счетчик комментариев
+                            updateCommentsCount(-1);
+                        }, 300);
+                    } else {
+                        alert('Ошибка при удалении: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Ошибка при удалении комментария');
+                });
+            }
+        });
+    });
+
+    // РЕДАКТИРОВАНИЕ КОММЕНТАРИЕВ
+    document.querySelectorAll('.edit-comment').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const commentId = this.dataset.commentId;
+            const commentElement = this.closest('.card-body');
+            const contentElement = commentElement.querySelector('p.mt-2.mb-2');
+            const originalContent = contentElement.textContent;
+
+            // Заменяем текст на textarea для редактирования
+            const textarea = document.createElement('textarea');
+            textarea.className = 'form-control mb-2';
+            textarea.value = originalContent;
+            textarea.rows = 3;
+
+            const buttonGroup = document.createElement('div');
+            buttonGroup.className = 'd-flex gap-2';
+
+            const saveBtn = document.createElement('button');
+            saveBtn.className = 'btn btn-success btn-sm';
+            saveBtn.innerHTML = '💾 Сохранить';
+
+            const cancelBtn = document.createElement('button');
+            cancelBtn.className = 'btn btn-secondary btn-sm';
+            cancelBtn.innerHTML = '❌ Отмена';
+
+            buttonGroup.appendChild(saveBtn);
+            buttonGroup.appendChild(cancelBtn);
+
+            // Заменяем контент
+            contentElement.replaceWith(textarea);
+            textarea.after(buttonGroup);
+
+            // Сохранение
+            saveBtn.addEventListener('click', function() {
+                const newContent = textarea.value.trim();
+                if (!newContent) {
+                    alert('Комментарий не может быть пустым');
+                    return;
+                }
+
+                fetch(`/api/comments/${commentId}/update/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `content=${encodeURIComponent(newContent)}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Возвращаем обычный текст
+                        const newContentElement = document.createElement('p');
+                        newContentElement.className = 'mt-2 mb-2';
+                        newContentElement.textContent = data.new_content;
+
+                        textarea.replaceWith(newContentElement);
+                        buttonGroup.remove();
+                    } else {
+                        alert('Ошибка при редактировании: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Ошибка при редактировании комментария');
+                });
+            });
+
+            // Отмена редактирования
+            cancelBtn.addEventListener('click', function() {
+                const originalContentElement = document.createElement('p');
+                originalContentElement.className = 'mt-2 mb-2';
+                originalContentElement.textContent = originalContent;
+
+                textarea.replaceWith(originalContentElement);
+                buttonGroup.remove();
+            });
+        });
+    });
+});
+
+// Вспомогательная функция для получения CSRF токена
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Обновление счетчика комментариев
+function updateCommentsCount(change) {
+    const countElement = document.querySelector('.comments-section .badge');
+    if (countElement) {
+        const currentCount = parseInt(countElement.textContent) || 0;
+        countElement.textContent = Math.max(0, currentCount + change);
+    }
+}
+</script>

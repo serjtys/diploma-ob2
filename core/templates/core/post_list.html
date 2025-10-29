@@ -5,78 +5,159 @@
 
 {% block extra_css %}
 <style>
-    .post-card {
-        border-left: 4px solid transparent;
+    .hero-section {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(116, 75, 162, 0.1) 100%);
+        border-radius: var(--radius);
+        padding: 3rem 2rem;
+        margin-bottom: 2rem;
+        text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin: 2rem 0;
+    }
+
+    .stat-card {
+        background: var(--card-bg);
+        padding: 1.5rem;
+        border-radius: var(--radius);
+        text-align: center;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0.5rem;
+    }
+
+    .author-card {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        border-radius: var(--radius-sm);
         transition: all 0.3s ease;
+        border: 1px solid var(--border);
     }
-    
-    .post-card.paid {
-        border-left-color: #ffc107;
-        background: linear-gradient(135deg, #fff3cd10, transparent);
-    }
-    
-    .post-card.free {
-        border-left-color: #198754;
-    }
-    
-    .content-preview {
-        display: -webkit-box;
-        -webkit-line-clamp: 3;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
+
+    .author-card:hover {
+        background: rgba(99, 102, 241, 0.05);
+        transform: translateX(5px);
     }
 </style>
 {% endblock %}
 
 {% block content %}
+<!-- Герой секция -->
+<div class="hero-section fade-in">
+    <div class="row align-items-center">
+        <div class="col-lg-8 mx-auto text-center">
+            <h1 class="display-5 fw-bold gradient-text mb-3">📚 Платформа Платного Контента</h1>
+            <p class="lead text-muted mb-4">Откройте для себя уникальный контент от талантливых авторов. Бесплатные и премиум материалы в одном месте.</p>
+
+            {% if not user.is_authenticated %}
+            <div class="d-flex gap-3 justify-content-center flex-wrap">
+                <a href="{% url 'users:register' %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-rocket me-2"></i>Начать бесплатно
+                </a>
+                <a href="{% url 'core:subscribe' %}" class="btn btn-outline-primary btn-lg">
+                    <i class="fas fa-crown me-2"></i>Премиум доступ
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
 <div class="row">
     <!-- Основной контент -->
     <div class="col-lg-8">
-        <!-- Заголовок и статистика -->
+        <!-- Статистика -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">{{ total_posts }}</div>
+                <div class="text-muted">Всего постов</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number text-success">{{ free_posts_count }}</div>
+                <div class="text-muted">Бесплатных</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number text-warning">{{ paid_posts_count }}</div>
+                <div class="text-muted">Премиум</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number text-info">{{ popular_authors|length }}+</div>
+                <div class="text-muted">Авторов</div>
+            </div>
+        </div>
+
+        <!-- Заголовок секции -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
-                <h1 class="h2 mb-1">📚 Все записи</h1>
-                <p class="text-muted mb-0">Откройте для себя новый контент</p>
+                <h2 class="h4 mb-1">📖 Все записи</h2>
+                <p class="text-muted mb-0">Новые публикации от сообщества</p>
             </div>
             <div class="text-end">
-                <span class="badge bg-primary fs-6">{{ posts|length }} всего</span>
-                <br>
-                <small class="text-muted">
-                    <span class="text-success">{{ free_posts_count }} 🆓</span> | 
-                    <span class="text-warning">{{ paid_posts_count }} 💰</span>
-                </small>
+                {% if user.is_authenticated %}
+                <a href="{% url 'core:post_create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Новый пост
+                </a>
+                {% endif %}
             </div>
         </div>
 
         <!-- Список постов -->
         {% for post in posts %}
-        <div class="card post-card shadow-sm mb-4 {% if post.is_paid %}paid{% else %}free{% endif %}">
+        <div class="card post-card shadow-sm mb-4 {% if post.is_paid %}paid{% else %}free{% endif %} fade-in">
             <div class="card-body">
                 <div class="row align-items-start">
                     <div class="col-md-8">
                         <!-- Заголовок и бейдж -->
-                        <div class="d-flex align-items-center mb-2">
-                            <h5 class="card-title mb-0 me-3">{{ post.title }}</h5>
+                        <div class="d-flex align-items-center mb-3">
+                            <h5 class="card-title mb-0 me-3">
+                                <a href="{% url 'core:post_detail' post.id %}" class="text-decoration-none text-dark">
+                                    {{ post.title }}
+                                </a>
+                            </h5>
                             {% if post.is_paid %}
-                                <span class="badge paid-badge px-2 py-1">
-                                    💰 Платный
+                                <span class="badge paid-badge">
+                                    <i class="fas fa-crown me-1"></i>Премиум
                                 </span>
                             {% else %}
-                                <span class="badge free-badge px-2 py-1">
-                                    🎁 Бесплатный
+                                <span class="badge free-badge">
+                                    <i class="fas fa-unlock me-1"></i>Бесплатно
                                 </span>
                             {% endif %}
                         </div>
 
                         <!-- Контент -->
-                        <p class="card-text text-muted content-preview mb-3">
-                            {{ post.content }}
+                        <p class="card-text text-muted mb-3">
+                            {{ post.content|truncatewords:30 }}
                         </p>
 
                         <!-- Мета-информация -->
                         <div class="d-flex align-items-center text-muted small">
-                            <span class="me-3">📱 {{ post.author.phone_number }}</span>
-                            <span>📅 {{ post.created_at|date:"d.m.Y в H:i" }}</span>
+                            <div class="d-flex align-items-center me-3">
+                                <div class="avatar me-2">
+                                    {{ post.author.nickname|first|upper }}
+                                </div>
+                                <span>
+                                    <a href="{% url 'users:user_profile' post.author.id %}" class="text-muted text-decoration-none">
+                                        {{ post.author.nickname }}
+                                    </a>
+                                </span>
+                            </div>
+                            <span class="me-3"><i class="far fa-clock me-1"></i>{{ post.created_at|date:"d.m.Y" }}</span>
+                            <span><i class="far fa-comment me-1"></i>{{ post.comments.count }}</span>
                         </div>
                     </div>
 
@@ -84,29 +165,39 @@
                         <!-- Сообщения о доступе -->
                         {% if post.is_paid %}
                             {% if not user.is_authenticated %}
-                                <div class="alert alert-warning p-2 mb-2">
-                                    <small>🔒 <a href="{% url 'users:login' %}" class="alert-link">Войдите</a> для просмотра</small>
+                                <div class="alert alert-warning p-3 mb-3">
+                                    <i class="fas fa-lock me-2"></i>
+                                    <small><a href="{% url 'users:login' %}" class="alert-link">Войдите</a> для просмотра</small>
                                 </div>
-                            {% elif not user.has_active_subscription %}
-                                <div class="alert alert-info p-2 mb-2">
-                                    <small>💳 <a href="{% url 'core:subscribe' %}" class="alert-link">Подписка</a> требуется</small>
+                            {% elif not user_has_active_subscription and post.author != user %}
+                                <div class="alert alert-info p-3 mb-3">
+                                    <i class="fas fa-crown me-2"></i>
+                                    <small><a href="{% url 'core:subscribe' %}" class="alert-link">Подписка</a> требуется</small>
                                 </div>
                             {% else %}
-                                <div class="alert alert-success p-2 mb-2">
-                                    <small>✅ Доступ открыт</small>
+                                <div class="alert alert-success p-3 mb-3">
+                                    <i class="fas fa-check me-2"></i>
+                                    <small>
+                                        {% if post.author == user %}
+                                            Ваш пост
+                                        {% else %}
+                                            Доступ открыт
+                                        {% endif %}
+                                    </small>
                                 </div>
                             {% endif %}
                         {% else %}
-                            <div class="alert alert-success p-2 mb-2">
-                                <small>🎉 Бесплатный контент</small>
+                            <div class="alert alert-success p-3 mb-3">
+                                <i class="fas fa-unlock me-2"></i>
+                                <small>Бесплатный контент</small>
                             </div>
                         {% endif %}
 
                         <!-- Кнопка чтения -->
-                        {% if not post.is_paid or user.is_authenticated and user.has_active_subscription %}
-                            <button class="btn btn-outline-primary btn-sm">
-                                📖 Читать полностью
-                            </button>
+                        {% if not post.is_paid or user.is_authenticated and user_has_active_subscription or user == post.author %}
+                            <a href="{% url 'core:post_detail' post.id %}" class="btn btn-outline-primary">
+                                <i class="fas fa-book-open me-2"></i>Читать
+                            </a>
                         {% endif %}
                     </div>
                 </div>
@@ -114,20 +205,55 @@
         </div>
         {% empty %}
         <!-- Пустой state -->
-        <div class="text-center py-5">
+        <div class="text-center py-5 fade-in">
             <div class="mb-4">
-                <span style="font-size: 4rem;">📝</span>
+                <i class="fas fa-feather-alt" style="font-size: 4rem; color: var(--primary);"></i>
             </div>
-            <h3 class="text-muted">Пока нет записей</h3>
-            <p class="text-muted">Будьте первым, кто поделится контентом!</p>
+            <h3 class="text-muted mb-3">Пока нет записей</h3>
+            <p class="text-muted mb-4">Будьте первым, кто поделится контентом!</p>
             {% if user.is_authenticated %}
-                <a href="#" class="btn btn-primary">📝 Создать первую запись</a>
+                <a href="{% url 'core:post_create' %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-plus me-2"></i>Создать первую запись
+                </a>
+            {% else %}
+                <a href="{% url 'users:register' %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-user-plus me-2"></i>Присоединиться
+                </a>
             {% endif %}
         </div>
         {% endfor %}
+
+        <!-- Пагинация -->
+        {% if is_paginated %}
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                </li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
     </div>
 
-    <!-- Боковая панель -->
+    <!-- Сайдбар -->
     <div class="col-lg-4">
         {% include 'includes/sidebar.html' %}
     </div>

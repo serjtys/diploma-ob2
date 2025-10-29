@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ post.title }} - ContentPlatform{% endblock %}
+
+{% block extra_css %}
+<style>
+    .post-header {
+        border-bottom: 2px solid var(--border);
+        padding-bottom: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .content-area {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        color: var(--text);
+    }
+
+    .content-area pre {
+        background: var(--background);
+        padding: 1.5rem;
+        border-radius: var(--radius-sm);
+        overflow-x: auto;
+        border-left: 4px solid var(--primary);
+    }
+
+    .content-area blockquote {
+        border-left: 4px solid var(--accent);
+        padding-left: 1.5rem;
+        margin-left: 0;
+        font-style: italic;
+        color: var(--text-light);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Основной контент -->
+    <div class="col-lg-8">
+        <!-- Шапка поста -->
+        <div class="post-header fade-in">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <h1 class="h2 mb-0">{{ post.title }}</h1>
+                <span class="badge {% if post.is_paid %}paid-badge{% else %}free-badge{% endif %}">
+                    {% if post.is_paid %}<i class="fas fa-crown me-1"></i>Премиум{% else %}<i class="fas fa-unlock me-1"></i>Бесплатно{% endif %}
+                </span>
+            </div>
+
+            {% if user == post.author or user.is_superuser %}
+            <div class="mb-3">
+                <div class="btn-group">
+                    <a href="{% url 'core:post_edit' post.id %}" class="btn btn-warning btn-sm">
+                        <i class="fas fa-edit me-1"></i>Редактировать
+                    </a>
+                    <a href="{% url 'core:post_delete' post.id %}" class="btn btn-outline-danger btn-sm">
+                        <i class="fas fa-trash me-1"></i>Удалить
+                    </a>
+                </div>
+                <small class="text-muted ms-2"><i class="fas fa-user me-1"></i>Это ваш пост</small>
+            </div>
+            {% endif %}
+
+            <!-- Автор и дата -->
+            <div class="d-flex align-items-center text-muted">
+                <div class="d-flex align-items-center me-4">
+                    <div class="avatar me-2">
+                        {{ post.author.nickname|first|upper }}
+                    </div>
+                    <div>
+                        <a href="{% url 'users:user_profile' post.author.id %}" class="text-muted text-decoration-none">
+                            <strong>{{ post.author.nickname }}</strong>
+                        </a>
+                        <div class="extra-small">Автор</div>
+                    </div>
+                </div>
+                <div class="me-4">
+                    <i class="far fa-clock me-1"></i>
+                    {{ post.created_at|date:"d.m.Y в H:i" }}
+                </div>
+                <div>
+                    <i class="far fa-comment me-1"></i>
+                    {{ post.comments.count }} комментариев
+                </div>
+            </div>
+        </div>
+
+        <!-- Контент поста -->
+        <article class="card shadow-sm mb-4 fade-in">
+            <div class="card-body content-area">
+                {{ post.content|linebreaks }}
+            </div>
+        </article>
+
+        <!-- Доступ к платному контенту -->
+        {% if post.is_paid and not user_has_active_subscription and post.author != user and not user.is_superuser %}
+        <div class="alert alert-warning fade-in">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-lock fa-2x me-3"></i>
+                <div>
+                    <h5 class="alert-heading mb-2">Премиум контент</h5>
+                    <p class="mb-3">Этот материал доступен только пользователям с активной подпиской.</p>
+                    <a href="{% url 'core:subscribe' %}" class="btn btn-warning">
+                        <i class="fas fa-crown me-2"></i>Получить подписку
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Секция комментариев -->
+        {% include 'core/includes/comments.html' %}
+    </div>
+
+    <!-- Сайдбар -->
+    <div class="col-lg-4">
+        {% include 'includes/sidebar.html' %}
+    </div>
+</div>
+{% endblock %}

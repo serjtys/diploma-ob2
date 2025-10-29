@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Дашборд - ContentPlatform{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Заголовок -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="h2 mb-1">📊 Мой дашборд</h1>
+                <p class="text-muted mb-0">Обзор вашей активности на платформе</p>
+            </div>
+            <div class="text-end">
+                <span class="badge bg-primary fs-6">{{ total_posts }} постов</span>
+                <span class="badge bg-success fs-6 ms-2">{{ total_comments }} комментариев</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Статистика -->
+    <div class="col-md-3 mb-4">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <div class="h1">{{ total_posts }}</div>
+                <div>Всего постов</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <div class="h1">{{ free_posts_count }}</div>
+                <div>Бесплатных</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card bg-warning text-dark">
+            <div class="card-body text-center">
+                <div class="h1">{{ paid_posts_count }}</div>
+                <div>Платных</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <div class="h1">{{ total_comments }}</div>
+                <div>Комментариев</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Недавние посты -->
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">📝 Последние посты</h5>
+            </div>
+            <div class="card-body">
+                {% for post in recent_posts %}
+                <div class="card mb-2">
+                    <div class="card-body py-2">
+                        <h6 class="card-title mb-1">
+                            <a href="{% url 'core:post_detail' post.id %}" class="text-decoration-none">
+                                {{ post.title }}
+                            </a>
+                        </h6>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                📅 {{ post.created_at|date:"d.m.Y" }}
+                                <span class="badge {% if post.is_paid %}bg-warning{% else %}bg-success{% endif %} ms-1">
+                                    {% if post.is_paid %}💰{% else %}🎁{% endif %}
+                                </span>
+                            </small>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'core:post_edit' post.id %}" class="btn btn-outline-warning btn-sm">
+                                    ✏️
+                                </a>
+                                <a href="{% url 'core:post_delete' post.id %}" class="btn btn-outline-danger btn-sm">
+                                    🗑️
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center text-muted py-3">
+                    <p>Пока нет постов</p>
+                    <a href="{% url 'core:create_post' %}" class="btn btn-primary">Создать первый пост</a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Недавние комментарии -->
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">💬 Последние комментарии</h5>
+            </div>
+            <div class="card-body">
+                {% for comment in recent_comments %}
+                <div class="card mb-2">
+                    <div class="card-body py-2">
+                        <p class="mb-1 small">{{ comment.content|truncatewords:10 }}</p>
+                        <small class="text-muted">
+                            К посту: 
+                            <a href="{% url 'core:post_detail' comment.post.id %}" class="text-decoration-none">
+                                {{ comment.post.title }}
+                            </a>
+                        </small>
+                        <br>
+                        <small class="text-muted">📅 {{ comment.created_at|date:"d.m.Y H:i" }}</small>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center text-muted py-3">
+                    <p>Пока нет комментариев</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Быстрые действия -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">⚡ Быстрые действия</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'core:post_create' %}" class="btn btn-primary btn-lg w-100 py-3">
+                            📝 Создать пост
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'users:profile' %}" class="btn btn-success btn-lg w-100 py-3">
+                            👤 Мой профиль
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'core:subscribe' %}" class="btn btn-warning btn-lg w-100 py-3">
+                            💎 Подписка
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'core:post_list' %}" class="btn btn-info btn-lg w-100 py-3">
+                            📖 Все посты
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if form.instance.pk %}Редактировать пост{% else %}Опубликовать пост{% endif %} - ContentPlatform
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow border-0">
+            <div class="card-header {% if form.instance.pk %}bg-warning{% else %}bg-primary{% endif %} text-white py-3">
+                <h4 class="mb-0">
+                    {% if form.instance.pk %}
+                        ✏️ Редактировать пост
+                    {% else %}
+                        📝 Опубликовать новый пост
+                    {% endif %}
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <!-- Заголовок -->
+                    <div class="mb-3">
+                        <label for="id_title" class="form-label">Заголовок</label>
+                        <input type="text" class="form-control" id="id_title" name="title"
+                               value="{{ form.title.value|default:'' }}"
+                               placeholder="Введите заголовок поста" required>
+                    </div>
+
+                    <!-- Контент -->
+                    <div class="mb-3">
+                        <label for="id_content" class="form-label">Содержание</label>
+                        <textarea class="form-control" id="id_content" name="content"
+                                  rows="8" placeholder="Напишите содержание поста..." required>{{ form.content.value|default:'' }}</textarea>
+                    </div>
+
+                    <!-- Тип поста -->
+                    <div class="mb-4">
+                        <label class="form-label">Тип поста</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="is_paid" id="id_free" value="false"
+                                   {% if not form.is_paid.value %}checked{% endif %}>
+                            <label class="form-check-label text-success" for="id_free">
+                                🎁 Бесплатный (доступен всем)
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="is_paid" id="id_paid" value="true"
+                                   {% if form.is_paid.value %}checked{% endif %}>
+                            <label class="form-check-label text-warning" for="id_paid">
+                                💎 Платный (только для подписчиков)
+                            </label>
+                        </div>
+                        <div class="form-text">
+                            Платные посты видят все, но контент доступен только пользователям с активной подпиской
+                        </div>
+                    </div>
+
+                    <!-- Кнопки -->
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn {% if form.instance.pk %}btn-warning{% else %}btn-primary{% endif %} btn-lg">
+                            {% if form.instance.pk %}
+                                💾 Сохранить изменения
+                            {% else %}
+                                📤 Опубликовать
+                            {% endif %}
+                        </button>
+                        <a href="{% if form.instance.pk %}{% url 'core:post_detail' form.instance.pk %}{% else %}{% url 'core:post_list' %}{% endif %}"
+                           class="btn btn-outline-secondary">
+                            ❌ Отмена
+                        </a>
+
+                        {% if form.instance.pk %}
+                        <a href="{% url 'core:post_delete' form.instance.pk %}" class="btn btn-outline-danger ms-auto">
+                            🗑️ Удалить
+                        </a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

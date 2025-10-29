@@ -1,0 +1,272 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if is_own_profile %}Мой профиль{% else %}Профиль {{ profile_user.nickname }}{% endif %} - ContentPlatform
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-hero {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(116, 75, 162, 0.1) 100%);
+        border-radius: var(--radius);
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .stat-card {
+        background: var(--card-bg);
+        padding: 1.5rem;
+        border-radius: var(--radius);
+        text-align: center;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .stat-number {
+        font-size: 1.75rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0.5rem;
+    }
+
+    .quick-action {
+        background: linear-gradient(135deg, var(--card-bg) 0%, #f8fafc 100%);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 1rem;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        color: var(--text);
+        display: block;
+    }
+
+    .quick-action:hover {
+        background: rgba(99, 102, 241, 0.05);
+        transform: translateX(5px);
+        color: var(--text);
+        text-decoration: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Герой профиля -->
+<div class="profile-hero fade-in">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <div class="d-flex align-items-center">
+                <div class="avatar me-4" style="width: 80px; height: 80px; font-size: 2rem;">
+                    {{ profile_user.nickname|first|upper }}
+                </div>
+                <div>
+                    <h1 class="h2 mb-1">{{ profile_user.nickname }}</h1>
+                    <p class="text-muted mb-2">
+                        {% if is_own_profile %}
+                            <i class="fas fa-user-check me-1 text-success"></i>Это ваш профиль
+                        {% else %}
+                            <i class="fas fa-user me-1 text-primary"></i>Пользователь платформы
+                        {% endif %}
+                    </p>
+                    {% if profile_user.bio %}
+                    <p class="text-muted mb-0">{{ profile_user.bio }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 text-md-end">
+            {% if not is_own_profile %}
+            <button class="btn {% if is_following %}btn-outline-danger{% else %}btn-primary{% endif %} follow-btn"
+                    data-user-id="{{ profile_user.id }}"
+                    data-following="{{ is_following }}">
+                {% if is_following %}
+                <i class="fas fa-user-minus me-2"></i>Отписаться
+                {% else %}
+                <i class="fas fa-user-plus me-2"></i>Подписаться
+                {% endif %}
+            </button>
+            {% else %}
+            <a href="{% url 'users:dashboard' %}" class="btn btn-primary">
+                <i class="fas fa-chart-bar me-2"></i>Дашборд
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Боковая панель -->
+    <div class="col-lg-4">
+        <!-- Статистика -->
+        <div class="card shadow-sm border-0 mb-4 stats-card">
+            <div class="card-header bg-dark text-white py-3">
+                <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Статистика</h5>
+            </div>
+            <div class="card-body">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ posts_count }}</div>
+                        <div class="text-muted">Постов</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number text-success">{{ profile_user.followers_users.count }}</div>
+                        <div class="text-muted">Подписчиков</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number text-info">{{ profile_user.following_users.count }}</div>
+                        <div class="text-muted">Подписок</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number text-warning">{{ comments_count }}</div>
+                        <div class="text-muted">Комментариев</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Быстрые действия (только для своего профиля) -->
+        {% if is_own_profile %}
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-primary text-white py-3">
+                <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Быстрые действия</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'core:post_create' %}" class="quick-action">
+                        <i class="fas fa-plus me-2 text-primary"></i>Создать пост
+                    </a>
+                    <a href="{% url 'core:post_list' %}" class="quick-action">
+                        <i class="fas fa-newspaper me-2 text-success"></i>Все посты
+                    </a>
+                    <a href="{% url 'core:subscribe' %}" class="quick-action">
+                        <i class="fas fa-crown me-2 text-warning"></i>Управление подпиской
+                    </a>
+                    <a href="{% url 'core:my_following' %}" class="quick-action">
+                        <i class="fas fa-users me-2 text-info"></i>Мои подписки
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Основной контент -->
+    <div class="col-lg-8">
+        <!-- Посты пользователя -->
+        <div class="card shadow-sm border-0 mb-4 fade-in">
+            <div class="card-header bg-gradient-primary text-white py-3">
+                <h5 class="mb-0"><i class="fas fa-feather me-2"></i>Посты пользователя</h5>
+            </div>
+            <div class="card-body">
+                {% for post in user_posts %}
+                <div class="card post-card mb-3 {% if post.is_paid %}paid{% else %}free{% endif %}">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <h6 class="card-title mb-2">
+                                    <a href="{% url 'core:post_detail' post.id %}" class="text-decoration-none text-dark">
+                                        {{ post.title }}
+                                    </a>
+                                </h6>
+                                <p class="card-text text-muted small mb-2">
+                                    {{ post.content|truncatewords:25 }}
+                                </p>
+                                <div class="d-flex align-items-center text-muted small">
+                                    <span class="me-3"><i class="far fa-clock me-1"></i>{{ post.created_at|date:"d.m.Y" }}</span>
+                                    <span class="badge {% if post.is_paid %}paid-badge{% else %}free-badge{% endif %}">
+                                        {% if post.is_paid %}<i class="fas fa-crown me-1"></i>Премиум{% else %}<i class="fas fa-unlock me-1"></i>Бесплатно{% endif %}
+                                    </span>
+                                    <span class="ms-3"><i class="far fa-comment me-1"></i>{{ post.comments.count }}</span>
+                                </div>
+                            </div>
+                            {% if is_own_profile %}
+                            <div class="btn-group btn-group-sm ms-3">
+                                <a href="{% url 'core:post_edit' post.id %}" class="btn btn-outline-warning">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'core:post_delete' post.id %}" class="btn btn-outline-danger">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-5 text-muted">
+                    <i class="fas fa-feather-alt fa-3x mb-3" style="color: var(--primary);"></i>
+                    <p class="mb-3">Пока нет постов</p>
+                    {% if is_own_profile %}
+                    <a href="{% url 'core:post_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Создать первый пост
+                    </a>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Комментарии пользователя -->
+        <div class="card shadow-sm border-0 fade-in">
+            <div class="card-header bg-gradient-info text-white py-3">
+                <h5 class="mb-0"><i class="fas fa-comments me-2"></i>Последние комментарии</h5>
+            </div>
+            <div class="card-body">
+                {% for comment in user_comments|slice:":10" %}
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <p class="mb-2">{{ comment.content }}</p>
+                                <small class="text-muted">
+                                    <i class="fas fa-link me-1"></i>
+                                    К посту:
+                                    <a href="{% url 'core:post_detail' comment.post.id %}" class="text-decoration-none">
+                                        {{ comment.post.title }}
+                                    </a>
+                                </small>
+                                <br>
+                                <small class="text-muted">
+                                    <i class="far fa-clock me-1"></i>
+                                    {{ comment.created_at|date:"d.m.Y в H:i" }}
+                                </small>
+                            </div>
+                            {% if is_own_profile %}
+                            <div class="dropdown ms-3">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                                        type="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="dropdown-item"
+                                           href="{% url 'core:post_detail' comment.post.id %}#comment-{{ comment.id }}">
+                                            <i class="fas fa-external-link-alt me-2"></i>Перейти
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-4 text-muted">
+                    <i class="fas fa-comments fa-2x mb-3" style="color: var(--info);"></i>
+                    <p>Пока нет комментариев</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

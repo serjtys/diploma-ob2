@@ -1,51 +1,66 @@
-{% load static %}
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+<nav class="navbar navbar-expand-lg navbar-light sticky-top">
     <div class="container">
-        <!-- Логотип -->
-        <a class="navbar-brand fw-bold d-flex align-items-center" href="{% url 'core:post_list' %}">
-            <img src="{% static 'images/logo.png' %}" alt="Logo" height="30" class="me-2">
-            ContentPlatform
+        <a class="navbar-brand" href="{% url 'core:post_list' %}">
+            <i class="fas fa-gem me-2"></i>ContentPlatform
         </a>
 
-        <!-- Мобильное меню -->
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>
 
-        <!-- Навигация -->
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item">
-                    <a class="nav-link active" href="{% url 'core:post_list' %}">📖 Главная</a>
+                    <a class="nav-link" href="{% url 'core:post_list' %}">
+                        <i class="fas fa-home me-1"></i>Главная
+                    </a>
                 </li>
                 {% if user.is_authenticated %}
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'core:subscribe' %}">💎 Подписка</a>
+                    <a class="nav-link" href="{% url 'core:following_posts' %}">
+                        <i class="fas fa-newspaper me-1"></i>Моя лента
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'core:post_search' %}">
+                        <i class="fas fa-search me-1"></i>Поиск
+                    </a>
                 </li>
                 {% endif %}
             </ul>
 
-            <!-- Правая часть -->
             <ul class="navbar-nav">
                 {% if user.is_authenticated %}
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
-                            <span class="badge bg-light text-dark me-2">👤</span>
-                            {{ user.phone_number }}
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#">📊 Профиль</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-danger" href="{% url 'users:logout' %}">🚪 Выйти</a></li>
-                        </ul>
-                    </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                        <div class="avatar">
+                            {{ user.nickname|first|upper }}
+                        </div>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{% url 'users:user_profile' user.id %}">
+                            <i class="fas fa-user me-2"></i>Профиль
+                        </a></li>
+                        <li><a class="dropdown-item" href="{% url 'users:dashboard' %}">
+                            <i class="fas fa-chart-bar me-2"></i>Дашборд
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{% url 'users:logout' %}">
+                            <i class="fas fa-sign-out-alt me-2"></i>Выйти
+                        </a></li>
+                    </ul>
+                </li>
                 {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'users:login' %}">🔑 Войти</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'users:register' %}">📝 Регистрация</a>
-                    </li>
+                <li class="nav-item">
+                    <a class="btn btn-outline-primary me-2" href="{% url 'users:login' %}">
+                        <i class="fas fa-sign-in-alt me-1"></i>Войти
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="btn btn-primary" href="{% url 'users:register' %}">
+                        <i class="fas fa-user-plus me-1"></i>Регистрация
+                    </a>
+                </li>
                 {% endif %}
             </ul>
         </div>

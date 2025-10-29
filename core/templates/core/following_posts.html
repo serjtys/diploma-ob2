@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}Лента подписок - ContentPlatform{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="h2 mb-1">📰 Лента подписок</h1>
+                <p class="text-muted mb-0">Новые посты авторов, на которых вы подписаны</p>
+            </div>
+            <div class="text-end">
+                <span class="badge bg-primary fs-6">{{ following_count }} подписок</span>
+            </div>
+        </div>
+
+        {% if posts %}
+            {% for post in posts %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="card-title">
+                            <a href="{% url 'core:post_detail' post.id %}" class="text-decoration-none">
+                                {{ post.title }}
+                            </a>
+                        </h5>
+                        <span class="badge {% if post.is_paid %}bg-warning{% else %}bg-success{% endif %}">
+                            {% if post.is_paid %}💰 Платный{% else %}🎁 Бесплатный{% endif %}
+                        </span>
+                    </div>
+                    
+                    <p class="card-text text-muted">{{ post.content|truncatewords:30 }}</p>
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-muted small">
+                            <span>👤 
+                                <a href="{% url 'users:user_profile' post.author.id %}" class="text-muted text-decoration-none">
+                                    {{ post.author.nickname }}
+                                </a>
+                            </span>
+                            <span class="ms-3">📅 {{ post.created_at|date:"d.m.Y H:i" }}</span>
+                        </div>
+                        <a href="{% url 'core:post_detail' post.id %}" class="btn btn-outline-primary btn-sm">
+                            📖 Читать
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+        <div class="text-center py-5">
+            <span style="font-size: 4rem;">📝</span>
+            <h4 class="text-muted mt-3">Пока нет постов в ленте</h4>
+            <p class="text-muted">Подпишитесь на интересных авторов чтобы видеть их посты здесь</p>
+            <a href="{% url 'core:user_search' %}" class="btn btn-primary">🔍 Найти авторов</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

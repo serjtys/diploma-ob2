@@ -1,0 +1,21 @@
+name: Build Docker Image
+
+on:
+  push:
+    branches: [ develop ]
+    tags: [ 'v*' ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Build Docker image
+      run: |
+        docker build -t content-platform:latest .
+
+    - name: Test Docker image
+      run: |
+        docker run --rm content-platform:latest python manage.py check

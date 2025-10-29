@@ -1,60 +1,48 @@
-{% load static %}
-<footer class="bg-dark text-light mt-5">
+<footer class="bg-dark text-white mt-5">
     <div class="container py-4">
-        <div class="row text-center text-md-start">
-            <!-- О проекте -->
-            <div class="col-12 col-md-4 mb-4">
-                <h5>ContentPlatform</h5>
-                <p class="text-muted small">
-                    Платформа для публикации и монетизации контента.
-                    Создавайте, публикуйте и зарабатывайте.
+        <div class="row">
+            <div class="col-md-6">
+                <h5 class="gradient-text mb-3">
+                    <i class="fas fa-gem me-2"></i>ContentPlatform
+                </h5>
+                <p class="text-muted mb-3">
+                    Платформа для создания и монетизации контента.
+                    Присоединяйтесь к нашему сообществу авторов и читателей.
                 </p>
-            </div>
-
-            <!-- Навигация и Контакты в одной колонке на мобильных -->
-            <div class="col-12 col-md-5 mb-4">
-                <div class="row">
-                    <!-- Навигация -->
-                    <div class="col-6 col-sm-4">
-                        <h6 class="mb-2">Навигация</h6>
-                        <ul class="list-unstyled">
-                            <li class="mb-1"><a href="{% url 'core:post_list' %}" class="text-muted text-decoration-none small">Главная</a></li>
-                            <li class="mb-1"><a href="#" class="text-muted text-decoration-none small">О проекте</a></li>
-                            <li class="mb-1"><a href="#" class="text-muted text-decoration-none small">Правила</a></li>
-                        </ul>
-                    </div>
-
-                    <!-- Контакты -->
-                    <div class="col-6 col-sm-8">
-                        <h6 class="mb-2">Контакты</h6>
-                        <ul class="list-unstyled">
-                            <li class="text-muted small mb-1">📧 support@contentplatform.ru</li>
-                            <li class="text-muted small">🌐 contentplatform.ru</li>
-                        </ul>
-                    </div>
+                <div class="d-flex gap-3">
+                    <a href="#" class="text-muted"><i class="fab fa-telegram fa-lg"></i></a>
+                    <a href="#" class="text-muted"><i class="fab fa-github fa-lg"></i></a>
+                    <a href="#" class="text-muted"><i class="fab fa-twitter fa-lg"></i></a>
                 </div>
             </div>
-
-            <!-- Подписка -->
-            <div class="col-12 col-md-3 text-center text-md-end">
-                <h6 class="mb-2">Подписка</h6>
-                <p class="text-muted small mb-2">
-                    Доступ к премиум материалам
-                </p>
-                <a href="{% url 'core:subscribe' %}" class="btn btn-outline-light btn-sm">
-                    💳 Подписка
-                </a>
+            <div class="col-md-3">
+                <h6 class="text-white mb-3">Навигация</h6>
+                <ul class="list-unstyled">
+                    <li><a href="{% url 'core:post_list' %}" class="text-muted text-decoration-none">Главная</a></li>
+                    <li><a href="{% url 'core:post_search' %}" class="text-muted text-decoration-none">Поиск</a></li>
+                    <li><a href="/swagger/" class="text-muted text-decoration-none">API Документация</a></li>
+                </ul>
+            </div>
+            <div class="col-md-3">
+                <h6 class="text-white mb-3">Помощь</h6>
+                <ul class="list-unstyled">
+                    <li><a href="#" class="text-muted text-decoration-none">Поддержка</a></li>
+                    <li><a href="#" class="text-muted text-decoration-none">Правила</a></li>
+                    <li><a href="#" class="text-muted text-decoration-none">Конфиденциальность</a></li>
+                </ul>
             </div>
         </div>
-
-        <hr class="bg-secondary my-3">
-
+        <hr class="my-4 bg-light">
         <div class="row align-items-center">
-            <div class="col-12 col-md-6 text-center text-md-start mb-2 mb-md-0">
-                <p class="text-muted small mb-0">&copy; 2024 ContentPlatform</p>
+            <div class="col-md-6">
+                <small class="text-muted">
+                    © 2024 ContentPlatform. Все права защищены.
+                </small>
             </div>
-            <div class="col-12 col-md-6 text-center text-md-end">
-                <span class="text-muted small">Сделано с ❤️ для диплома</span>
+            <div class="col-md-6 text-md-end">
+                <small class="text-muted">
+                    Сделано с <i class="fas fa-heart text-danger"></i> для авторов
+                </small>
             </div>
         </div>
     </div>

@@ -1,0 +1,18 @@
+[tool.black]
+line-length = 119
+target-version = ['py311']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  | .git
+  | .venv
+  | migrations
+  | static
+  | templates
+)/
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 119
