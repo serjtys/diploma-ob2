@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}Поиск пользователей - ContentPlatform{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Заголовок и поиск -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h1 class="h3 mb-3">👥 Поиск пользователей</h1>
+                <form method="get" class="d-flex">
+                    <input type="text" name="q" class="form-control me-2" 
+                           placeholder="Введите никнейм или номер телефона..." 
+                           value="{{ query }}">
+                    <button type="submit" class="btn btn-primary">🔍 Найти</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Результаты -->
+        {% if users %}
+        <div class="row">
+            {% for user in users %}
+            <div class="col-md-6 col-lg-4 mb-3">
+                <div class="card shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <span style="font-size: 3rem;">👤</span>
+                        </div>
+                        <h5 class="card-title">{{ user.get_display_name }}</h5>
+                        <p class="text-muted small">{{ user.nickname }}</p>
+                        
+                        <div class="row text-center mb-3">
+                            <div class="col-6">
+                                <small class="text-muted">Постов</small>
+                                <div class="h6 mb-0">{{ user.post_set.count }}</div>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">Подписчиков</small>
+                                <div class="h6 mb-0">{{ user.followers_users.count }}</div>
+                            </div>
+                        </div>
+
+                        {% if user != request.user %}
+                        <button class="btn btn-outline-primary btn-sm follow-btn" 
+                                data-user-id="{{ user.id }}"
+                                data-following="{% if user in request.user.following_users.all %}true{% else %}false{% endif %}">
+                            {% if user in request.user.following_users.all %}
+                                ✅ Подписан
+                            {% else %}
+                                ➕ Подписаться
+                            {% endif %}
+                        </button>
+                        {% endif %}
+                        
+                        <a href="{% url 'users:user_profile' user.id %}" class="btn btn-outline-secondary btn-sm ms-1">
+                            👀 Профиль
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% elif query %}
+        <div class="text-center py-5">
+            <span style="font-size: 4rem;">🔍</span>
+            <h4 class="text-muted mt-3">Пользователи не найдены</h4>
+            <p class="text-muted">Попробуйте изменить запрос</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+// JavaScript для подписки
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.follow-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const userId = this.dataset.userId;
+            const isFollowing = this.dataset.following === 'true';
+            
+            fetch(`/user/${userId}/follow/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.action === 'followed') {
+                        this.innerHTML = '✅ Подписан';
+                        this.dataset.following = 'true';
+                        this.classList.remove('btn-outline-primary');
+                        this.classList.add('btn-outline-success');
+                    } else {
+                        this.innerHTML = '➕ Подписаться';
+                        this.dataset.following = 'false';
+                        this.classList.remove('btn-outline-success');
+                        this.classList.add('btn-outline-primary');
+                    }
+                }
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

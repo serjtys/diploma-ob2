@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}API Documentation - ContentPlatform{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow border-0">
+            <div class="card-header bg-dark text-white py-4">
+                <h1 class="h3 mb-0">📚 API Documentation</h1>
+                <p class="mb-0 mt-2">Complete API reference for ContentPlatform</p>
+            </div>
+            <div class="card-body p-0">
+                <div class="row">
+                    <div class="col-md-3 border-end">
+                        <div class="p-4">
+                            <h5>Quick Links</h5>
+                            <ul class="nav nav-pills flex-column">
+                                <li class="nav-item">
+                                    <a class="nav-link active" href="#swagger">
+                                        <i class="fas fa-code me-2"></i>Swagger UI
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="#redoc">
+                                        <i class="fas fa-book me-2"></i>ReDoc
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/swagger/" target="_blank">
+                                        <i class="fas fa-external-link-alt me-2"></i>Open Swagger
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-md-9">
+                        <div class="p-4">
+                            <div class="mb-4">
+                                <h4>Interactive API Documentation</h4>
+                                <p>Use the links below to explore our API endpoints:</p>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card">
+                                            <div class="card-body text-center">
+                                                <h5>Swagger UI</h5>
+                                                <p>Interactive API documentation with testing capabilities</p>
+                                                <a href="/swagger/" class="btn btn-primary" target="_blank">
+                                                    Open Swagger
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card">
+                                            <div class="card-body text-center">
+                                                <h5>ReDoc</h5>
+                                                <p>Beautiful static documentation</p>
+                                                <a href="/redoc/" class="btn btn-success" target="_blank">
+                                                    Open ReDoc
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

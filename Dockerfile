@@ -23,3 +23,10 @@ RUN pip install -r requirements.txt
 
 # Копируем проект
 COPY . .
+
+# Создаем пользователя для безопасности (опционально, но рекомендуется)
+RUN useradd -m -r appuser && chown -R appuser /app
+USER appuser
+
+# Запускаем Gunicorn для продакшена
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "config.wsgi:application"]
